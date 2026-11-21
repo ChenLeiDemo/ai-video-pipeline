@@ -1,0 +1,29 @@
+{
+  "jobs": [
+    {
+      "id": "EP01_SEG05",
+      "seed": 20261121805,
+      "image": {
+        "prompt": "以<image1>中医院负二层走廊作为场景，切换为平视双人中景；左侧<image2>单人跪地，右侧<image3>靠墙半跪；<image4>的木箱放在两人之间。保持三者的面部、服装与道具一致。",
+        "refs": ["SC-01.png", "CH-01.png", "CH-05A.png", "PR-01.png"],
+        "width": 1376,
+        "height": 768
+      },
+      "video": {
+        "prompt": "subject_definitions: <Picture 1> is the opening two-shot ... <Subject 1> ... from <Picture 2>. <Subject 2> ... from <Picture 3>.\n\nsummary: ...\n\nretention_analysis: ...\n\ndetailed_description: [Shot 1] ... [Shot 2] ...",
+        "seconds": 10.13,
+        "refs": ["@kf", "CH-01.png", "CH-05A.png"]
+      }
+    },
+    {
+      "id": "EP01_SEG08",
+      "tail": "EP01_SEG05",
+      "seed": 20261121808,
+      "video": {
+        "prompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] ...\n\noverall_soundscape: ...\n\nnon_diegetic_music: ...",
+        "seconds": 10.13,
+        "refs": ["@tail"]
+      }
+    }
+  ]
+}

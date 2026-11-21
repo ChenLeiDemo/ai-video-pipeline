@@ -1,0 +1,312 @@
+{
+  "_meta": {
+    "purpose": "MiniMax H3 一采（预览，608x352）",
+    "workflow": "up自用低配二采v1.5 minimax h3工作流.json",
+    "verified": "2026-11-21 124 帧 = 95s；243 帧一采约 3 分钟",
+    "required_edits": [
+      "6.prompt",
+      "17.value（md 原样秒数）",
+      "12.seed",
+      "24/15/123.image",
+      "126.filename_prefix"
+    ],
+    "notes": [
+      "ref_image_size: match（不要用 max，慢数倍）",
+      "不要把 Node 5507 Power Lora Loader 加回来：它引用的 H3-Licon-VBVR-I2V 不存在",
+      "Node 6 的 width/height/length 由连线决定，widget 里的 1344/768 是死值"
+    ]
+  },
+  "prompt": {
+    "5": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "7",
+          1
+        ],
+        "vae": [
+          "26",
+          0
+        ]
+      }
+    },
+    "6": {
+      "class_type": "MiniMaxH3ReferenceToVideo",
+      "inputs": {
+        "clip": [
+          "18",
+          0
+        ],
+        "vae": [
+          "26",
+          0
+        ],
+        "audio_vae": [
+          "19",
+          0
+        ],
+        "prompt": "REPLACE_WITH_PROMPT",
+        "width": [
+          "8",
+          0
+        ],
+        "height": [
+          "8",
+          1
+        ],
+        "length": [
+          "40",
+          1
+        ],
+        "ref_image_size": "match",
+        "ref_images.ref_image_0": [
+          "24",
+          0
+        ],
+        "ref_images.ref_image_1": [
+          "15",
+          0
+        ],
+        "ref_images.ref_image_2": [
+          "123",
+          0
+        ]
+      }
+    },
+    "7": {
+      "class_type": "SamplerCustomAdvanced",
+      "inputs": {
+        "noise": [
+          "11",
+          0
+        ],
+        "guider": [
+          "14",
+          0
+        ],
+        "sampler": [
+          "10",
+          0
+        ],
+        "sigmas": [
+          "119",
+          0
+        ],
+        "latent_image": [
+          "6",
+          1
+        ]
+      }
+    },
+    "8": {
+      "class_type": "ResolutionSelector",
+      "inputs": {
+        "aspect_ratio": "16:9 (Widescreen)",
+        "megapixels": 0.2,
+        "multiple": 32
+      }
+    },
+    "10": {
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "res_multistep"
+      }
+    },
+    "11": {
+      "class_type": "RandomNoise",
+      "inputs": {
+        "noise_seed": [
+          "12",
+          0
+        ]
+      }
+    },
+    "12": {
+      "class_type": "Seed (rgthree)",
+      "inputs": {
+        "seed": 20261121001
+      }
+    },
+    "14": {
+      "class_type": "BasicGuider",
+      "inputs": {
+        "model": [
+          "21",
+          0
+        ],
+        "conditioning": [
+          "6",
+          0
+        ]
+      }
+    },
+    "15": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "CH-01.png"
+      }
+    },
+    "17": {
+      "class_type": "PrimitiveFloat",
+      "inputs": {
+        "value": 10.13
+      }
+    },
+    "18": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
+    },
+    "19": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+      }
+    },
+    "20": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "DasiwaMinimaxH3_dasiwaHybridV2_int8.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "21": {
+      "class_type": "LoraLoaderModelOnly",
+      "inputs": {
+        "model": [
+          "5504",
+          0
+        ],
+        "lora_name": "minimax_h3_ref2v_turbo_8step_v1.0_768p_comfyui_bf16.safetensors",
+        "strength_model": 1
+      }
+    },
+    "24": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "KF-04A.jpg"
+      }
+    },
+    "26": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+      }
+    },
+    "40": {
+      "class_type": "ComfyMathExpression",
+      "inputs": {
+        "expression": "max(5, round(a * 24)) + (5 - (max(5, round(a * 24)) % 17)) % 17",
+        "values.a": [
+          "17",
+          0
+        ]
+      }
+    },
+    "119": {
+      "class_type": "BasicScheduler",
+      "inputs": {
+        "model": [
+          "21",
+          0
+        ],
+        "scheduler": "simple",
+        "steps": [
+          "5515",
+          0
+        ],
+        "denoise": 1
+      }
+    },
+    "123": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "CH-05A.png"
+      }
+    },
+    "125": {
+      "class_type": "ModelAttentionBackend",
+      "inputs": {
+        "model": [
+          "20",
+          0
+        ],
+        "attention": "comfy kitchen attention"
+      }
+    },
+    "126": {
+      "class_type": "VHS_VideoCombine",
+      "inputs": {
+        "images": [
+          "5",
+          0
+        ],
+        "audio": [
+          "128",
+          0
+        ],
+        "frame_rate": 24,
+        "loop_count": 0,
+        "filename_prefix": "agent_test/P1",
+        "format": "video/h264-mp4",
+        "pingpong": false,
+        "save_output": true,
+        "pix_fmt": "yuv420p",
+        "crf": 19,
+        "save_metadata": true,
+        "trim_to_audio": false
+      }
+    },
+    "128": {
+      "class_type": "VAEDecodeAudio",
+      "inputs": {
+        "samples": [
+          "7",
+          1
+        ],
+        "vae": [
+          "19",
+          0
+        ]
+      }
+    },
+    "156": {
+      "class_type": "MiniMaxH3SigmaShift",
+      "inputs": {
+        "model": [
+          "125",
+          0
+        ],
+        "shift_video": 6,
+        "shift_audio": 3
+      }
+    },
+    "5504": {
+      "class_type": "BlockSparseAttention",
+      "inputs": {
+        "model": [
+          "156",
+          0
+        ],
+        "selection": "sol-attn",
+        "selection.tau": 1.2,
+        "start_percent": 0.2,
+        "end_percent": 0.9,
+        "dense_blocks": "0-2,-1",
+        "min_tokens": 12288,
+        "extra_tokens": 256,
+        "sink_conditioning": "exact_kv_and_rows",
+        "verbose": false
+      }
+    },
+    "5515": {
+      "class_type": "INTConstant",
+      "inputs": {
+        "value": 8
+      }
+    }
+  }
+}

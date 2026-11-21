@@ -1,0 +1,23 @@
+# 运行产物与本地状态
+comfy_runs.jsonl
+batch_runs.jsonl
+batch_report.json
+batch.log
+*.log
+shots/
+qa/
+
+# Node
+node_modules/
+package-lock.json
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时产物
+*.mp4
+*.png
+*.jpg
+*.webp
