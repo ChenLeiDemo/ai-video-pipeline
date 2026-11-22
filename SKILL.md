@@ -16,6 +16,7 @@ description: 用本地 ComfyUI 的 REST API 按分镜文档投产 AI 短剧：Qw
 5. **节点号必须带工作流前缀**：`Qwen/83`、`H3/83`、`Qwen/125`、`H3/125`。两个工作流有 31 个节点号重复，裸写会改错节点。
 
 ## 1. 开工体检（失败就停）
+新机器第一次开工先跑 `node scripts/doctor.mjs`：Node / ffmpeg / 目录 / 节点类 / 模型一次查完。
 
 ```bash
 curl -s 127.0.0.1:8188/system_stats            # 有 devices[0]
@@ -125,6 +126,7 @@ node scripts/comfy_run.mjs final.json --timeout 1800
 - 换算：`8.megapixels=0.2` → 608×352；×2 → 1216×704。
 - 要文档里的 1344×768：`8.megapixels ≈ 0.26`（672×384）。同时把 `98.chunk_length` 从 153 降到 121。
 - 其它分辨率相关字段不要动。
+- 1216×704 放大到 1080p **不会增加细节**：审片用 `fit` 即可，交付要真细节就先跑 SeedVR2 再总装，或直接用 `native` 交付 1216×704。
 
 ## 8. 质检门禁
 
@@ -154,16 +156,36 @@ FF="D:\Comfy-Desktop\ComfyUI-Installs\ComfyUI\ComfyUI\.venv\Lib\site-packages\im
 - 命名：`<集>_<段>_KF-<号>.png`、`<集>_<段>_p1_seed<seed>.mp4`、`<集>_<段>_final.mp4`。
 - 每次运行自动记账到 `comfy_runs.jsonl`（cwd），含 prompt_id、耗时、seed、产物。
 
-整片拼接（可选，段间编码一致，直接流复制）：
+整片总装用 `scripts/assemble.mjs`（plan 驱动）：
 
-```bash
-FF="D:\Comfy-Desktop\ComfyUI-Installs\ComfyUI\ComfyUI\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe"
-cd "D:/Comfy-Desktop/ComfyUI-Shared/output/EP01"
-for f in SEG-0[1-9]_p2_00001-audio.mp4 SEG-1*_p2_00001-audio.mp4; do echo "file '$f'"; done > list.txt   # 必须用相对路径：Windows 版 ffmpeg 不认 /d/... 的 MSYS 路径
-"$FF" -f concat -safe 0 -i list.txt -c copy EP01_full.mp4
+```json
+{
+  "clips": [
+    {"id": "SEG-01", "file": "…/SEG-01_p2_00001-audio.mp4"},
+    {"id": "SEG-07", "file": "…", "trimTail": 7},
+    {"id": "POST-01", "file": "…", "tailBlurFrames": 3},
+    {"id": "SEG-11", "file": "…", "noFadeOut": true},
+    {"id": "POST-02", "file": "…", "noFadeIn": true, "noGrade": true}
+  ],
+  "lead": 2.0,
+  "output": {"file": "<项目>/output/EP01.mp4", "width": 1920, "height": 1080,
+             "mode": "fit", "fps": 24, "crf": 16},
+  "grade": {"grain": 5, "vignette": true},
+  "audio": {"roomTone": true, "lufs": -14, "truePeak": -1},
+  "edl": "<项目>/output/EP01_timeline.edl"
+}
 ```
 
-POST-01 是后期合成镜（裂屏手机 + 微信 UI），不参与 concat，需在剪映/AE 叠加。
+```bash
+node scripts/assemble.mjs plan.json --dry   # 先看时间轴与帧数
+node scripts/assemble.mjs plan.json         # 实际总装（--reuse 复用已标准化片段）
+```
+
+- `mode`：`fit`（默认，保比例补边）、`crop`（填满裁边）、`native`（不放大，保持源尺寸）。
+- 尾帧接力链：前段 `trimTail` 填抽尾帧时回退的帧数（`-sseof -0.3` ≈ 7 帧）。
+- `noGrade` / `noFadeIn` / `noFadeOut` 用于 POST 黑卡与刀切归零。
+- EDL 是 CMX 3600，可直接导入剪映/达芬奇。
+- 成片总帧数可能比理论少 1–2 帧（拼接口取整），以成片为准；EDL 若差 2 帧，按画面切点对齐。
 
 ## 10. 故障排查
 
@@ -230,6 +252,10 @@ node scripts/verify_output.mjs out.mp4 --frames 243 --audio --width 1216 --heigh
 - `scripts/check_graph.mjs` — 提交前校验（占位符/类/必填/连线/参考图数/帧数/分块/前缀）
 - `scripts/comfy_run.mjs` — 提交/轮询/报错/记账
 - `scripts/verify_output.mjs` — 产物校验（帧数/时长/分辨率/音轨）
+- `scripts/assemble.mjs` — 总装（画幅/淡入淡出/底噪/响度/EDL）
+- `scripts/doctor.mjs` — 环境体检（读 reference/requirements.json）
+- `reference/requirements.json` — 节点类与模型清单（单一事实源）
+- `INSTALL.md` — 新机器安装与验收步骤
 - `scripts/batch.mjs` — 批量执行（plan 驱动、断点续跑、尾帧接力）
 - `scripts/probe.mjs` — ffmpeg 元数据读取（被上面两个脚本引用）
 - `reference/nodes.md` — 节点对照与消歧

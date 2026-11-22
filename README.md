@@ -54,6 +54,10 @@ node scripts/batch.mjs plan.json --assets ./assets --prefix EP01
 | `scripts/comfy_run.mjs` | 提交 / 轮询 / 报错 / 记账 |
 | `scripts/verify_output.mjs` | 产物校验（帧数/时长/分辨率/音轨） |
 | `scripts/batch.mjs` | 批量执行（plan 驱动、断点续跑、尾帧接力） |
+| `scripts/assemble.mjs` | 总装：画幅/淡入淡出/底噪/响度归一/EDL |
+| `scripts/doctor.mjs` | 环境体检：Node/ffmpeg/节点类/模型 |
+| `INSTALL.md` | 新机器安装与验收 |
+| `reference/requirements.json` | 节点类与模型清单（doctor 的数据源） |
 | `scripts/probe.mjs` | ffmpeg 元数据读取 |
 | `reference/nodes.md` | 两个源工作流的节点对照与撞号消歧 |
 | `reference/constants.md` | 路径、启动命令、实测耗时、错误原文 |
