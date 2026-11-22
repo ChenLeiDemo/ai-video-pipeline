@@ -12,7 +12,7 @@ description: 用本地 ComfyUI 的 REST API 按分镜文档投产 AI 短剧：Qw
 1. **只提交 `templates/*.json` 里的 `.prompt`（API 格式）。** 画布 JSON 提交会 HTTP 500，且错误不可读。
 2. **JSON 以 UTF-8 文件发送**（用 `scripts/comfy_run.mjs`），提交前先过 `scripts/check_graph.mjs`。
 3. **串行**：一次一个 prompt，前一个打印"完成"后再提交下一个。
-4. **不改**采样器、CFG、LoRA、模型加载器、分辨率，除非 §6 明确要求。
+4. **不改**采样器、CFG、LoRA、模型加载器、分辨率，除非 §7 明确要求。
 5. **节点号必须带工作流前缀**：`Qwen/83`、`H3/83`、`Qwen/125`、`H3/125`。两个工作流有 31 个节点号重复，裸写会改错节点。
 
 ## 1. 开工体检（失败就停）
@@ -33,16 +33,37 @@ curl -s 127.0.0.1:8188/object_info/LoadImage   # image 列表里要有模板中�
 对分镜文档里的每个 SEG：
 
 1. 读该段的「第一步」与「第二步」，取三样东西：参考图清单、提示词、秒数。
-2. 第一步是**生成母图** → 走 §3；是**资产确认/尾帧抽取** → 跳过生图。
-3. 写图 → `check_graph` → `comfy_run` 一采 → 抽帧质检（§7）。
+2. 需要新角色/场景/道具母稿 → §3；第一步是**生成母图** → §4；是**资产确认/尾帧抽取** → 跳过生图。
+3. 写图 → `check_graph` → `comfy_run` 一采 → 抽帧质检（§8）。
 4. 一采不过：只换 `12.seed`，最多 3 次；超限停机并输出归因。
-5. 一采过：用**同一个 seed** 走二采（§5）；同一提交跑两采时不必回填。
-6. 二采成片质检 → 归档（§8）。
+5. 一采过：用**同一个 seed** 走二采（§6）；同一提交跑两采时不必回填。
+6. 二采成片质检 → 归档（§9）。
 7. 文档写「从某段抽取尾帧」时：从上一段成片抽末帧（`-sseof -0.3`），作为本段 Picture 1；不重新生图。
 
 不要跳步、不要并发、不要为了省时间关掉 `98`。
 
-## 3. 生图（Qwen 母图）
+## 3. 资产母稿（MOSS 文生图）
+
+角色定妆照、配角、场景空景、道具的**从零生成**走 `templates/moss_t2i.json`。提示词来源是资产库（如 `v3.x_项目总控_大纲与资产提示词库.md`）里该资产的整段代码块——**整段复制，不要缩写**，MOSS 对长描述的执行优于短关键词。
+
+| 字段 | 填什么 |
+|---|---|
+| `1.text` | 资产库那一项的完整提示词（中文长段） |
+| `13.seed` | 换卡换整数；同一角色换装时沿用 seed 更稳 |
+| `15.width/height` | 默认 1376×768；竖构图 768×1376 |
+| `49.filename_prefix` | `MOSS/CH-01` 之类 |
+
+```bash
+node scripts/check_graph.mjs ch01.json
+node scripts/comfy_run.mjs ch01.json --timeout 300
+```
+
+- 实测：1376×768 / 30 步 = **55s/张**，连跑 2 张无 OOM。
+- 负面提示词用模板里的英文串，不要改中文。
+- **身份一致性**：同一角色的新造型优先「已有母稿 + Qwen 多图编辑」（§4），不要重新 T2I，否则脸会变。
+- 生成的 PNG 在 `output/MOSS/`，确认后再放进 ComfyUI input 供后续参考图使用。
+
+## 4. 生图（Qwen 母图）
 
 复制 `templates/qwen_edit.json` 到工作目录，只改这几处：
 
@@ -62,7 +83,7 @@ node scripts/comfy_run.mjs kf.json --timeout 600
 
 实测：4 图 1376×768 = 187s；1 图 672×384 = 20s。参考图少于提示词里的 `<imageN>` **不会报错**，会退化成纯文字生成——`check_graph` 就是拦这个。
 
-## 4. 一采（H3 预览）
+## 5. 一采（H3 预览）
 
 `templates/h3_pass1.json`，只改：
 
@@ -83,7 +104,7 @@ node scripts/comfy_run.mjs p1.json --timeout 900
 
 实测：124 帧 95s；243 帧约 180s。
 
-## 5. 二采（高清成片）
+## 6. 二采（高清成片）
 
 `templates/h3_pass2.json`：一次提交跑完一采 + 二采，`126` 与 `114` 两个 VHS 都写文件。
 
@@ -99,13 +120,13 @@ node scripts/comfy_run.mjs final.json --timeout 1800
 
 实测：243 帧全流程 682s，成片 1216×704、24fps、h264+aac。
 
-## 6. 需要改分辨率时
+## 7. 需要改分辨率时
 
 - 换算：`8.megapixels=0.2` → 608×352；×2 → 1216×704。
 - 要文档里的 1344×768：`8.megapixels ≈ 0.26`（672×384）。同时把 `98.chunk_length` 从 153 降到 121。
 - 其它分辨率相关字段不要动。
 
-## 7. 质检门禁
+## 8. 质检门禁
 
 判定顺序固定，不要先看"好不好看"：
 
@@ -127,7 +148,7 @@ FF="D:\Comfy-Desktop\ComfyUI-Installs\ComfyUI\ComfyUI\.venv\Lib\site-packages\im
 "$FF" -sseof -0.2 -i in.mp4 -frames:v 1 tail.png  # 尾帧
 ```
 
-## 8. 归档
+## 9. 归档
 
 - 产物路径取 `comfy_run.mjs` 打印的 fullpath（或 `GET /history/<id>`）。
 - 命名：`<集>_<段>_KF-<号>.png`、`<集>_<段>_p1_seed<seed>.mp4`、`<集>_<段>_final.mp4`。
@@ -144,7 +165,7 @@ for f in SEG-0[1-9]_p2_00001-audio.mp4 SEG-1*_p2_00001-audio.mp4; do echo "file 
 
 POST-01 是后期合成镜（裂屏手机 + 微信 UI），不参与 concat，需在剪映/AE 叠加。
 
-## 9. 故障排查
+## 10. 故障排查
 
 | 现象 | 原因 | 处理 |
 |---|---|---|
@@ -154,14 +175,14 @@ POST-01 是后期合成镜（裂屏手机 + 微信 UI），不参与 concat，�
 | 出图像纯文字生成 | `<imageN>` 多于实际连线 | 补齐 `image_0N` 或删掉多余引用 |
 | 成片时长不对 | 秒数被四舍五入（5.2 → 141 帧） | 传文档原值（5.17 → 124 帧） |
 
-## 10. 不要做的
+## 11. 不要做的
 
 - 不要提交 UI 画布 JSON，不要试图"点开关"。
 - 不要加回 `5507 Power Lora Loader`（依赖缺失 LoRA）。
 - Qwen：不要碰 `34/35`（提示词优化器，与主链无关）、不要改 `354/355/356` 三个 LoRA。
 - 不要给 `12` 填 -1：API 只认字面值，随机由 agent 自己生成。
 
-## 11. 给其它 agent 的接入说明
+## 12. 给其它 agent 的接入说明
 
 - **技能根目录** = 本 SKILL.md 所在目录。下面的 `templates/`、`scripts/`、`reference/` 都相对它。
 - 依赖：Node ≥ 18（`node` 在 PATH 即可），无需 npm install。没有 Node 就用 `curl --data-binary @body.json` 手工提交，但 UTF-8 与轮询要自己实现。
@@ -172,7 +193,7 @@ POST-01 是后期合成镜（裂屏手机 + 微信 UI），不参与 concat，�
 - 路径用环境变量覆盖，不改代码：`COMFY_BASE`、`COMFY_INPUT`、`COMFY_OUTPUT`、`COMFY_FFMPEG`（默认值见 `reference/constants.md`）。
 - 自检：`node scripts/check_graph.mjs templates/h3_pass2.json` 应当**失败**（`REPLACE_WITH_PROMPT`），失败即说明脚本在工作。
 
-## 12. 批量与校验（多镜时用）
+## 13. 批量与校验（多镜时用）
 
 `scripts/batch.mjs` 用一份外部 plan 跑整批：断点续跑、尾帧接力、产物校验都内置。**plan 由 agent 读文档后生成**，不写进代码，所以换集只改 plan。
 
@@ -202,6 +223,7 @@ node scripts/verify_output.mjs out.mp4 --frames 243 --audio --width 1216 --heigh
 
 ## 文件地图
 
+- `templates/moss_t2i.json` — 11 节点，MOSS 文生图（资产定妆照/场景）
 - `templates/qwen_edit.json` — 24 节点，4 参考图编辑
 - `templates/h3_pass1.json` — 25 节点，一采
 - `templates/h3_pass2.json` — 36 节点，一采 + 二采（含分块）

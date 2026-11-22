@@ -79,3 +79,22 @@
 | 二采 | `158` Fast Groups Bypasser（匹配「二」） | 忽略整组 = 只跑一采 |
 | 时间分块 | `142` → `98` | 二采采样分块 |
 | 种子 | `12` | 值为 -1 时由前端随机，API 只认字面值 |
+
+## MOSS 文生图（`YZ金鱼-MOSS-文生图.json`）
+
+模板 `moss_t2i.json` 保留的节点：
+
+| 节点 | 类型 | 作用 |
+|---|---|---|
+| 7 | CLIPLoader | `qwen3.5_9b_int8_convrot`，type=`moss_image` |
+| 1 / 3 | CLIPTextEncode | 正向 / 负向提示词 |
+| 12 → 18 → 19 | UNETLoader → LoRA（观澜 0.9）→ SkipLayerGuidance（single 22 层） | 模型链 |
+| 15 | EmptyFlux2LatentImage | 1376×768 出图尺寸 |
+| 13 | KSampler | er_sde / 30 步 / cfg 3.5 / simple |
+| 2 / 4 | VAELoader(flux2-vae) / VAEDecode | 解码 |
+| 49 | SaveImage | 产物 |
+
+**剔除的节点**：SeedVR2 放大分支（55~65，另一个模型，需单独跑）、`78 easy cleanGpuUsed`（纯清理）、`88/92` 提示词中转（API 里把 88 的文本直接写进节点 1）、`98 忽略多组孤海`、`68 Reroute`、`82/93` 注释。
+
+注意：MOSS 的提示词节点是 **1**，与 Qwen 工作流的 83、H3 的 6 不同，别混。
+

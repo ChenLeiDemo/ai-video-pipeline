@@ -105,7 +105,7 @@ async function main() {
   }
 
   // 5. 输出前缀
-  const defaults = new Set(['agent_test/KF', 'agent_test/P1', 'agent_test/P2']);
+  const defaults = new Set(['agent_test/KF', 'agent_test/P1', 'agent_test/P2', 'MOSS/asset']);
   for (const [id, n] of Object.entries(g)) {
     if (n.class_type !== 'SaveImage' && n.class_type !== 'VHS_VideoCombine') continue;
     const p = n.inputs?.filename_prefix;

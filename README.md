@@ -46,6 +46,7 @@ node scripts/batch.mjs plan.json --assets ./assets --prefix EP01
 | 路径 | 说明 |
 |---|---|
 | `SKILL.md` | 执行规范：体检、每镜执行链、字段表、质检门禁、排错 |
+| `templates/moss_t2i.json` | 11 节点，MOSS 文生图（角色定妆照 / 场景 / 道具） |
 | `templates/qwen_edit.json` | 24 节点，Qwen 多参考图编辑 |
 | `templates/h3_pass1.json` | 25 节点，H3 一采 |
 | `templates/h3_pass2.json` | 36 节点，一采 + 二采（含时间分块） |

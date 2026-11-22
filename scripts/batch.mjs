@@ -41,7 +41,18 @@ const log = m => {
 const tpl = {
   qwen: JSON.parse(fs.readFileSync(path.join(HERE, '../templates/qwen_edit.json'), 'utf8')).prompt,
   p2: JSON.parse(fs.readFileSync(path.join(HERE, '../templates/h3_pass2.json'), 'utf8')).prompt,
+  moss: JSON.parse(fs.readFileSync(path.join(HERE, '../templates/moss_t2i.json'), 'utf8')).prompt,
 };
+
+function buildT2i(job) {
+  const g = structuredClone(tpl.moss);
+  g['1'].inputs.text = job.t2i.prompt;
+  g['13'].inputs.seed = job.t2i.seed ?? job.seed ?? 1;
+  g['15'].inputs.width = job.t2i.width ?? 1376;
+  g['15'].inputs.height = job.t2i.height ?? 768;
+  g['49'].inputs.filename_prefix = `${PREFIX}/${job.id}`;
+  return g;
+}
 
 let inputList = new Set();
 async function loadInputs() {
@@ -183,6 +194,36 @@ async function main() {
     if (!job.id) throw new Error('job 缺 id');
     log(`== ${job.id}`);
     const seed = job.seed ?? Number(String(Date.now()).slice(-9));
+
+    // 资产（MOSS 文生图）
+    if (job.t2i) {
+      const reused = findExisting(job.id, '');
+      if (reused && !FORCE) {
+        log(`  复用 ${path.basename(reused)}`);
+        done[job.id] = { png: reused };
+        report.push({ id: job.id, stage: 't2i', file: reused, skipped: true });
+        continue;
+      }
+      const g = buildT2i({ ...job, seed });
+      const gp = path.join(process.cwd(), `${job.id}_t2i.json`);
+      fs.writeFileSync(gp, JSON.stringify({ prompt: g }, null, 1), 'utf8');
+      const chk = spawnSync(process.execPath, [path.join(HERE, 'check_graph.mjs'), gp], { encoding: 'utf8' });
+      if (chk.status !== 0) throw new Error(`资产校验失败\n${chk.stdout}${chk.stderr}`);
+      const id = await submit(g);
+      const r = await wait(id, 600);
+      const file = r.files.find(f => /\.png$/i.test(f.name));
+      if (!file) throw new Error(`${job.id}: 无 PNG 产物`);
+      const size = pngSize(file.abs);
+      const wantW = job.t2i.width || 1376;
+      const wantH = job.t2i.height || 768;
+      if (size && (size.width !== wantW || size.height !== wantH)) {
+        throw new Error(`${job.id}: 尺寸 ${size.width}x${size.height} ≠ ${wantW}x${wantH}`);
+      }
+      done[job.id] = { png: file.abs };
+      log(`  资产 ${path.basename(file.abs)} ${size ? size.width + 'x' + size.height : ''} ${r.secs}s`);
+      report.push({ id: job.id, stage: 't2i', file: file.abs, secs: r.secs });
+      continue;
+    }
 
     // 母图
     let kf = null;

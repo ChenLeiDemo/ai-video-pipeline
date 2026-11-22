@@ -121,3 +121,14 @@ cd /d D:\Comfy-Desktop\ComfyUI-Installs\ComfyUI
 | `COMFY_INPUT` | `D:/Comfy-Desktop/ComfyUI-Shared/input` | 素材目录 |
 | `COMFY_OUTPUT` | `D:/Comfy-Desktop/ComfyUI-Shared/output` | 产物根目录（图片没有 fullpath 时靠它拼绝对路径） |
 | `COMFY_FFMPEG` | `.venv\…\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe` | 抽帧与元数据读取 |
+
+## MOSS 文生图
+
+| 项 | 实测值 |
+|---|---|
+| 分辨率 | 1376×768（16:9，EmptyFlux2Latent 默认）；竖构图 768×1376 |
+| 采样 | er_sde / simple / 30 步 / cfg 3.5 / denoise 1 |
+| 耗时 | **55s/张**（1376×768，模型已热） |
+| 连续出图 | 2 张无 OOM；换尺寸不重建模型 |
+| 模型 | `moss_image_sft_int8_convrot` + `qwen3.5_9b_int8_convrot` + `flux2-vae` + LoRA `KOOK-MOSS-SFT-观澜` |
+| 身份一致性 | 同角色换装不要重 T2I，改走 Qwen 多图编辑（§4） |
