@@ -31,7 +31,6 @@ const grain = plan.grade?.grain ?? 0;
 const vignette = plan.grade?.vignette ?? false;
 const lufs = plan.audio?.lufs ?? -14;
 const tp = plan.audio?.truePeak ?? -1;
-const limit = (10 ** (tp / 20)).toFixed(4);
 const outFile = plan.output?.file;
 if (!outFile) { console.error('plan.output.file 必填'); process.exit(1); }
 
@@ -155,32 +154,45 @@ if (plan.audio?.roomTone !== false) {
   fs.copyFileSync(concatA, mix);
 }
 
-// 响度：测 mix → 增益 → 试混 → 按成品回测修正一次
+// 响度：增益 → 快速限幅 → 回测；若修正反而更差则回滚
 const measure = file => {
   const r = spawnSync(FF, ['-hide_banner', '-i', file, '-af', 'loudnorm=print_format=json', '-f', 'null', '-'], { encoding: 'utf8' });
   const t = `${r.stdout || ''}\n${r.stderr || ''}`;
   return JSON.parse(t.slice(t.lastIndexOf('{'), t.lastIndexOf('}') + 1));
 };
 const mixM = measure(mix);
+// AAC 编码后真峰值会比限幅器高约 0.5 dB，先压低补偿
+let limDb = tp - 0.7;
 let gain = lufs - Number(mixM.input_i);
-let lim = Number(limit);
-const mux = () => run(['-y', '-hide_banner', '-loglevel', 'error', '-i', concatV, '-i', mix,
-  '-filter_complex', `[1:a]volume=${gain.toFixed(2)}dB,alimiter=limit=${lim.toFixed(4)}:level=false:attack=5:release=50,aresample=48000,apad[a]`,
+const mux = (g, ldB) => run(['-y', '-hide_banner', '-loglevel', 'error', '-i', concatV, '-i', mix,
+  '-filter_complex', `[1:a]volume=${g.toFixed(2)}dB,alimiter=limit=${(10 ** (ldB / 20)).toFixed(4)}:level=false:attack=1:release=1,aresample=48000,apad[a]`,
   '-map', '0:v', '-map', '[a]', '-c:v', 'copy',
   '-c:a', 'aac', '-b:a', abr, '-movflags', '+faststart', '-shortest', outFile], 'final mux');
-console.log(`  响度 mix I=${mixM.input_i} LUFS → 初增益 ${gain.toFixed(2)} dB，限幅 ${lim}`);
-mux();
-const outM = measure(outFile);
-const dI = lufs - Number(outM.input_i);
-const dTP = Number(outM.input_tp) - tp;
-if (Math.abs(dI) > 0.3 || dTP > 0.05) {
-  gain += dI;
-  if (dTP > 0.05) lim = Math.max(0.4, lim * (10 ** (-(dTP + 0.1) / 20)));
-  console.log(`  回测 I=${outM.input_i} TP=${outM.input_tp} → 修正 ${dI.toFixed(2)} dB / 限幅 ${lim.toFixed(3)}`);
-  mux();
+console.log(`  响度 mix I=${mixM.input_i} LUFS → 增益 ${gain.toFixed(2)} dB，限幅 ${limDb.toFixed(1)} dB`);
+mux(gain, limDb);
+let best = measure(outFile);
+let bestGain = gain, bestLim = limDb;
+
+const dI = lufs - Number(best.input_i);
+const dTP = Number(best.input_tp) - tp;
+if (Math.abs(dI) > 0.5) {
+  const g2 = gain + dI;
+  const l2 = dTP > 0.05 ? limDb - (dTP + 0.1) : limDb;
+  console.log(`  回测 I=${best.input_i} TP=${best.input_tp} → 试修正 ${dI.toFixed(2)} dB / 限幅 ${l2.toFixed(1)} dB`);
+  mux(g2, l2);
+  const m2 = measure(outFile);
+  if (Math.abs(lufs - Number(m2.input_i)) < Math.abs(lufs - Number(best.input_i))) {
+    best = m2; bestGain = g2; bestLim = l2;
+  } else {
+    console.log('  修正后更差，回滚首轮参数（源动态范围大，目标可能不可达）');
+    mux(bestGain, bestLim);
+    best = measure(outFile);
+  }
 }
-const finalM = measure(outFile);
-console.log(`  成品 I=${finalM.input_i} LUFS TP=${finalM.input_tp} dBTP`);
+console.log(`  成品 I=${best.input_i} LUFS TP=${best.input_tp} dBTP`);
+if (Math.abs(Number(best.input_i) - lufs) > 1) {
+  console.log(`  注意：目标 ${lufs} LUFS 未达成。源素材过轻/动态范围过大时，限幅到 ${tp} dBTP 后就压不动了，需先做压缩或重出音频。`);
+}
 
 // EDL
 if (plan.edl) {
