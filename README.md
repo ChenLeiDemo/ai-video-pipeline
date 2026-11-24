@@ -109,7 +109,7 @@ node scripts/batch.mjs plan.json --assets ./assets --prefix EP01
 
 ## 已知限制
 
-- 模板里的提示词是 `REPLACE_WITH_PROMPT` 占位符，未填会被 `check_graph` 和 `comfy_run` 拒绝。
+- 模板不携带提示词和参考图：`REPLACE_WITH_PROMPT` 与 `REPLACE_WITH_REF*.png` 都是占位，未填会被 `check_graph` 和 `comfy_run` 拒绝，自检会列出具体字段。
 - 模板绑定当前模型文件名；换模型要同步改模板里的加载器字段（`requirements.json` 会提示缺哪个）。
 - 台词/音频内容无法自动核验，只能确认有音轨、无明显错嘴。
 - 画面内中文小字可能糊化（如「隔离专用梯」），需人工抽帧检查。

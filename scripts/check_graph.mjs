@@ -26,10 +26,18 @@ async function main() {
 
   const raw = fs.readFileSync(file, 'utf8');
   const hasPlaceholder = raw.includes('REPLACE_WITH');
-  if (hasPlaceholder) err('还有 REPLACE_WITH_* 占位符');
   let parsed;
   try { parsed = JSON.parse(raw); } catch (e) { console.error('JSON 解析失败:', e.message); return 1; }
   const g = parsed.prompt && typeof parsed.prompt === 'object' ? parsed.prompt : parsed;
+  if (hasPlaceholder) {
+    const ph = [];
+    for (const [id, n] of Object.entries(g)) {
+      for (const [k, v] of Object.entries(n.inputs || {})) {
+        if (typeof v === 'string' && v.includes('REPLACE_WITH')) ph.push(`${id}.${k}`);
+      }
+    }
+    err(ph.length ? `占位符未填: ${ph.join(', ')}` : '还有 REPLACE_WITH_* 占位符');
+  }
 
   const res = await fetch(`${base}/object_info`);
   if (!res.ok) { console.error('无法读取 /object_info，ComfyUI 没开或地址不对:', res.status); return 2; }

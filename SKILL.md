@@ -71,7 +71,7 @@ node scripts/comfy_run.mjs ch01.json --timeout 300
 | 字段 | 填什么 |
 |---|---|
 | `83.value` | 分镜文档「编辑提示词」整段，原样 |
-| `54/127/129/141.image` | 文档的 `image_1..4`；**文档用几张就删掉其余 LoadImage + 318..321 + `125.image_0N`** |
+| `54/127/129/141.image` | 本项目参考图文件名（现为 `REPLACE_WITH_REF*` 占位）；**用几张就留几个 LoadImage + 318..321 + `125.image_0N`，其余删掉** |
 | `125.image_01..0N` | 与文档 `<image1..N>` 一一对应，**数量必须相等** |
 | `67.noise_seed` | 换卡就换整数 |
 | `64.filename_prefix` | `EP01/KF-05A` 之类 |
@@ -93,7 +93,7 @@ node scripts/comfy_run.mjs kf.json --timeout 600
 | `6.prompt` | 文档「视频生成提示词」整段（含首行 `<Picture 1>…` 或 `subject_definitions:`） |
 | `17.value` | 文档秒数原样（5.17 / 8 / 10.13），**不要四舍五入** |
 | `12.seed` | 整数，自己生成；不要用 -1 |
-| `24/15/123.image` | Picture 1/2/3 对应文件；只用 1 张就删掉 `ref_images.ref_image_1/2` 与对应 LoadImage |
+| `24/15/123.image` | Picture 1/2/3 对应文件（现为 `REPLACE_WITH_REF*` 占位）；只用 1 张就删掉 `ref_images.ref_image_1/2` 与对应 LoadImage |
 | `126.filename_prefix` | `EP01/SEG05_p1` |
 
 帧数不用算：`40` 的公式自动出 `17k+5`（10.13 → 243）。`6` 的 width/height/length 由连线决定，widget 里的 1344/768 是死值。
@@ -213,7 +213,7 @@ node scripts/assemble.mjs plan.json         # 实际总装（--reuse 复用已�
 - 分镜文档由调用方指定（示例：`<项目>/v3.x_EPxx_场面调度_剧本与投产分镜.md`）；换集只换这一个路径。
 - 机器相关路径、启动命令、实测常量都在 `reference/constants.md`，换机器只改那一处。
 - 路径用环境变量覆盖，不改代码：`COMFY_BASE`、`COMFY_INPUT`、`COMFY_OUTPUT`、`COMFY_FFMPEG`（默认值见 `reference/constants.md`）。
-- 自检：`node scripts/check_graph.mjs templates/h3_pass2.json` 应当**失败**（`REPLACE_WITH_PROMPT`），失败即说明脚本在工作。
+- 自检：`node scripts/check_graph.mjs templates/h3_pass2.json` 应当**失败**并列出 `占位符未填: …`，失败即说明脚本在工作。
 
 ## 13. 批量与校验（多镜时用）
 

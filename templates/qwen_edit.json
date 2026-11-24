@@ -5,11 +5,12 @@
     "verified": "2026-11-21 RTX 5060 8GB / ComfyUI 0.46.2 / 4 refs 1376x768 = 187.5s",
     "required_edits": [
       "83.value",
-      "54/127/129/141.image 或删除未用参考图",
+      "54/127/129/141.image（REPLACE_WITH_REF*，或删除未用参考图）",
       "125.image_01..0N",
       "67.noise_seed",
       "64.filename_prefix",
-      "125.latent_width/height 可选"
+      "125.latent_width/height 可选",
+      "所有 LoadImage.image：换成本项目参考图文件名"
     ],
     "reference_slots": "image_01=<image1>, image_02=<image2>, ... 与 md 的 <imageN> 严格对应；少接不报错但会退化成文生图"
   },
@@ -38,7 +39,7 @@
     "54": {
       "class_type": "LoadImage",
       "inputs": {
-        "image": "SC-01.png"
+        "image": "REPLACE_WITH_REF1.png"
       }
     },
     "60": {
@@ -172,19 +173,19 @@
     "127": {
       "class_type": "LoadImage",
       "inputs": {
-        "image": "CH-01.png"
+        "image": "REPLACE_WITH_REF2.png"
       }
     },
     "129": {
       "class_type": "LoadImage",
       "inputs": {
-        "image": "CH-05A.png"
+        "image": "REPLACE_WITH_REF3.png"
       }
     },
     "141": {
       "class_type": "LoadImage",
       "inputs": {
-        "image": "PR-01.png"
+        "image": "REPLACE_WITH_REF4.png"
       }
     },
     "318": {

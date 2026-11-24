@@ -69,15 +69,17 @@ node scripts/doctor.mjs
 全 OK 后，用模板自检：
 
 ```bash
-node scripts/check_graph.mjs templates/h3_pass2.json   # 应失败：REPLACE_WITH_PROMPT
+node scripts/check_graph.mjs templates/h3_pass2.json   # 应失败：占位符未填
 ```
 
 
-自检**只应报 1 条**：`REPLACE_WITH_* 占位符未填`。
+自检**只应报 1 条**，并直接列出要填的字段，例如：
 
-模板里的 `LoadImage.image`（CH-01.png / KF-04A.jpg / CH-05A.png…）是**示例参考图名，不是必需品**。校验在占位符未填时会跳过文件检查；等你填好提示词、真正准备运行时才检查这些文件是否存在，缺失会逐条报错并要求先 `POST /upload/image` 或拷进 `COMFY_INPUT`。
+```
+ERROR 占位符未填: 6.prompt, 15.image, 24.image, 123.image
+```
 
-所以首次真实运行前，只需把模板里的示例文件名换成本项目的参考图。
+模板**不携带任何示例参考图**——`LoadImage.image` 同样是占位（`REPLACE_WITH_REF1.png`）。真正必需的是参考图**本身**（多图编辑必须接图，I2VA 必须有首帧），但具体文件名由你按本项目填。占位符未填时跳过文件存在性检查；填齐后才逐个校验，缺失会明确报错并要求先 `POST /upload/image` 或拷进 `COMFY_INPUT`。
 失败说明脚本在工作；再拿一个真实小样跑通一次生成，即安装完成。
 
 ## 8. 分辨率：别把 720p 硬上 1080p
