@@ -25,7 +25,8 @@ async function main() {
   const warn = m => warnings.push(m);
 
   const raw = fs.readFileSync(file, 'utf8');
-  if (raw.includes('REPLACE_WITH')) err('还有 REPLACE_WITH_* 占位符');
+  const hasPlaceholder = raw.includes('REPLACE_WITH');
+  if (hasPlaceholder) err('还有 REPLACE_WITH_* 占位符');
   let parsed;
   try { parsed = JSON.parse(raw); } catch (e) { console.error('JSON 解析失败:', e.message); return 1; }
   const g = parsed.prompt && typeof parsed.prompt === 'object' ? parsed.prompt : parsed;
@@ -58,8 +59,9 @@ async function main() {
     return [];
   };
   const imageList = new Set(listFor('LoadImage'));
+  // 占位符未填时跳过文件存在性检查：图本来就不会跑，报缺失只是噪音
   for (const [id, n] of Object.entries(g)) {
-    if (n.class_type === 'LoadImage' && !imageList.has(n.inputs?.image)) {
+    if (!hasPlaceholder && n.class_type === 'LoadImage' && !imageList.has(n.inputs?.image)) {
       err(`${id}: input 目录没有 ${n.inputs?.image}（先 POST /upload/image 或复制到 COMFY_INPUT 指向的目录）`);
     }
   }
@@ -98,8 +100,9 @@ async function main() {
     if (g['40'].inputs?.expression !== formula) warn('40 的公式被改过，帧数不再受 17k+5 保护');
     const expect = val('--frames', null);
     if (expect && Number(expect) !== frames) err(`预期 ${expect} 帧，按 17.value=${sec} 实得 ${frames} 帧`);
-    if (frames > 192 && !g['98']) err(`${frames} 帧但缺 98（时间分块），二采大概率 OOM`);
-    if (frames > 192 && g['98'] && Number(g['98'].inputs?.chunk_length) > 153) {
+    const isPass2 = Boolean(g['113'] || g['118']);
+    if (isPass2 && frames > 192 && !g['98']) err(`${frames} 帧但缺 98（时间分块），二采大概率 OOM`);
+    if (isPass2 && frames > 192 && g['98'] && Number(g['98'].inputs?.chunk_length) > 153) {
       warn(`chunk_length=${g['98'].inputs?.chunk_length}，8GB 建议保持 153 或更低`);
     }
   }

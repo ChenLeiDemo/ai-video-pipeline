@@ -73,12 +73,11 @@ node scripts/check_graph.mjs templates/h3_pass2.json   # 应失败：REPLACE_WIT
 ```
 
 
-自检还会报 `input 目录没有 CH-01.png / KF-04A.jpg / CH-05A.png`——这是**正常**的：模板自带的参考图是示例项目的，新机器 input 里没有。首次真实运行前二选一：
+自检**只应报 1 条**：`REPLACE_WITH_* 占位符未填`。
 
-- 把本项目参考图拷进 `COMFY_INPUT`，或
-- 直接把模板里的 `LoadImage.image` 换成本项目文件名
+模板里的 `LoadImage.image`（CH-01.png / KF-04A.jpg / CH-05A.png…）是**示例参考图名，不是必需品**。校验在占位符未填时会跳过文件检查；等你填好提示词、真正准备运行时才检查这些文件是否存在，缺失会逐条报错并要求先 `POST /upload/image` 或拷进 `COMFY_INPUT`。
 
-（`REPLACE_WITH_PROMPT` 未填这条是硬闸，必须修；参考图缺失按当前任务替换即可。）
+所以首次真实运行前，只需把模板里的示例文件名换成本项目的参考图。
 失败说明脚本在工作；再拿一个真实小样跑通一次生成，即安装完成。
 
 ## 8. 分辨率：别把 720p 硬上 1080p
