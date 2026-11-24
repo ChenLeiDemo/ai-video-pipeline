@@ -9,10 +9,10 @@ import { probe } from './probe.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = (process.env.COMFY_BASE || 'http://127.0.0.1:8188').replace(/\/$/, '');
-const INPUT = process.env.COMFY_INPUT || 'D:/Comfy-Desktop/ComfyUI-Shared/input';
-const OUTPUT = process.env.COMFY_OUTPUT || 'D:/Comfy-Desktop/ComfyUI-Shared/output';
+const INPUT = process.env.COMFY_INPUT || 'D:/ComfyUI_windows_portable/ComfyUI/input';
+const OUTPUT = process.env.COMFY_OUTPUT || 'D:/ComfyUI_windows_portable/ComfyUI/output';
 const FF = process.env.COMFY_FFMPEG
-  || 'D:/Comfy-Desktop/ComfyUI-Installs/ComfyUI/ComfyUI/.venv/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe';
+  || 'D:/ComfyUI_windows_portable/python_embeded/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe';
 const QWEN_SLOT = { 1: ['54', '318'], 2: ['127', '319'], 3: ['129', '320'], 4: ['141', '321'] };
 const H3_SLOT = { 1: '24', 2: '15', 3: '123', 4: '130' };
 const FORMULA = 'max(5, round(a * 24)) + (5 - (max(5, round(a * 24)) % 17)) % 17';

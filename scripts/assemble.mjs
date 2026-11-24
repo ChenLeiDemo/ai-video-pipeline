@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { probe } from './probe.mjs';
 
 const FF = process.env.COMFY_FFMPEG
-  || 'D:/Comfy-Desktop/ComfyUI-Installs/ComfyUI/ComfyUI/.venv/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe';
+  || 'D:/ComfyUI_windows_portable/python_embeded/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe';
 
 const args = process.argv.slice(2);
 const planFile = args.find(a => !a.startsWith('--'));

@@ -44,7 +44,7 @@
 用 ComfyUI venv 里的 `imageio_ffmpeg` 自带二进制（系统 PATH 通常没有）：
 
 ```
-<ComfyUI>/.venv/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe
+<portable根>/python_embeded/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe
 ```
 
 没有就 `pip install imageio-ffmpeg`。
@@ -54,8 +54,8 @@
 | 变量 | 示例 |
 |---|---|
 | `COMFY_BASE` | `http://127.0.0.1:8188` |
-| `COMFY_INPUT` | `D:/Comfy-Desktop/ComfyUI-Shared/input` |
-| `COMFY_OUTPUT` | `D:/Comfy-Desktop/ComfyUI-Shared/output` |
+| `COMFY_INPUT` | `D:/ComfyUI_windows_portable/ComfyUI/input` |
+| `COMFY_OUTPUT` | `D:/ComfyUI_windows_portable/ComfyUI/output` |
 | `COMFY_FFMPEG` | 上面 ffmpeg 的完整路径 |
 
 不设也能跑，但默认值是作者机器路径。
@@ -72,6 +72,13 @@ node scripts/doctor.mjs
 node scripts/check_graph.mjs templates/h3_pass2.json   # 应失败：REPLACE_WITH_PROMPT
 ```
 
+
+自检还会报 `input 目录没有 CH-01.png / KF-04A.jpg / CH-05A.png`——这是**正常**的：模板自带的参考图是示例项目的，新机器 input 里没有。首次真实运行前二选一：
+
+- 把本项目参考图拷进 `COMFY_INPUT`，或
+- 直接把模板里的 `LoadImage.image` 换成本项目文件名
+
+（`REPLACE_WITH_PROMPT` 未填这条是硬闸，必须修；参考图缺失按当前任务替换即可。）
 失败说明脚本在工作；再拿一个真实小样跑通一次生成，即安装完成。
 
 ## 8. 分辨率：别把 720p 硬上 1080p

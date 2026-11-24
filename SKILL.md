@@ -24,8 +24,8 @@ curl -s 127.0.0.1:8188/queue                   # running / pending 都为空
 curl -s 127.0.0.1:8188/object_info/LoadImage   # image 列表里要有模板中的全部文件名
 ```
 
-- 服务没开：让用户打开 ComfyUI Desktop；命令行启动方式见 `reference/constants.md`。
-- 模板里任何 `LoadImage.image` 不在列表 → `POST /upload/image`（`file=…, type=input`）或复制到 `D:\Comfy-Desktop\ComfyUI-Shared\input`。
+- 服务没开：让用户跑 `run_nvidia_gpu.bat`（portable）或启动 Desktop；命令行方式见 `reference/constants.md`。
+- 模板里任何 `LoadImage.image` 不在列表 → `POST /upload/image`（`file=…, type=input`）或复制到 `D:\ComfyUI_windows_portable\ComfyUI\input`。
 - 跨工作流（Qwen → H3）前：`POST /free {"unload_models":true,"free_memory":true}`。实测 3.8GB → 6.9GB。
 - 已知缺失、不要补：`H3-Licon-VBVR-I2V.safetensors`（模板已剔除依赖它的节点）。
 
@@ -145,7 +145,7 @@ node scripts/comfy_run.mjs final.json --timeout 1800
 抽帧（系统 PATH 里没有 ffmpeg）：
 
 ```bash
-FF="D:\Comfy-Desktop\ComfyUI-Installs\ComfyUI\ComfyUI\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe"
+FF="D:\ComfyUI_windows_portable\python_embeded\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe"
 "$FF" -ss 5.2 -i in.mp4 -frames:v 1 shot.png      # 单帧
 "$FF" -sseof -0.2 -i in.mp4 -frames:v 1 tail.png  # 尾帧
 ```

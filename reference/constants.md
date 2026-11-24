@@ -77,50 +77,48 @@ agent 侧超时建议：生图 600s，一采 900s，二采 1800s。
 
 ## 输入目标准路径
 
-`D:\Comfy-Desktop\ComfyUI-Shared\input`（LoadImage 只认这里，或 `POST /upload/image` 的返回值）
+`D:\ComfyUI_windows_portable\ComfyUI\input`（LoadImage 只认这里，或 `POST /upload/image` 的返回值）
 
 ## 产物路径
 
-- `D:\Comfy-Desktop\ComfyUI-Shared\output\<filename_prefix>_00001-audio.mp4`（VHS 会同时写 `-audio.mp4`、无声 `.mp4`、预览 `.png`）
+- `D:\ComfyUI_windows_portable\ComfyUI\output\<filename_prefix>_00001-audio.mp4`（VHS 会同时写 `-audio.mp4`、无声 `.mp4`、预览 `.png`）
 - `GET /history/<prompt_id>` 的 `outputs.*[].fullpath` 是最可靠的取值方式
-- 图片（SaveImage）**没有** `fullpath`，只有 `filename` + `subfolder`。设 `COMFY_OUTPUT=D:/Comfy-Desktop/ComfyUI-Shared/output`，`comfy_run.mjs` 才会打印绝对路径；否则打印 `subfolder/filename`。
+- 图片（SaveImage）**没有** `fullpath`，只有 `filename` + `subfolder`。设 `COMFY_OUTPUT=D:/ComfyUI_windows_portable/ComfyUI/output`，`comfy_run.mjs` 才会打印绝对路径；否则打印 `subfolder/filename`。
 
 ## 本机依赖路径
 
 | 用途 | 路径 |
 |---|---|
 | Node | `C:\Program Files\nodejs\node.exe`（≥18，脚本用 fetch/ESM） |
-| Python（ComfyUI 自带） | `D:\Comfy-Desktop\ComfyUI-Installs\ComfyUI\ComfyUI\.venv\Scripts\python.exe` |
-| ffmpeg | `…\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe` |
+| Python（ComfyUI 自带） | `D:\ComfyUI_windows_portable\python_embeded\Scripts\python.exe` |
+| ffmpeg | `…\python_embeded\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe` |
 | 工作流（参考） | `…\ComfyUI\user\default\workflows\` |
-| 输入 / 输出 | `D:\Comfy-Desktop\ComfyUI-Shared\input` / `…\output` |
-| 分镜文档 | `D:\ai video\v3.1_EP01_场面调度_剧本与MiniMax_H3投产分镜.md` |
+| 输入 / 输出 | `D:\ComfyUI_windows_portable\ComfyUI\input` / `…\output` |
+| 分镜文档 | `D:\AI短剧《暴雪前七天，我换了铁皮小卖部》\storyboard-baixue-ep01-10.md` |
 
 ## 服务启动
 
-优先让用户打开 ComfyUI Desktop。需要命令行启动时（与 Desktop 参数一致）：
+双击 `D:\ComfyUI_windows_portable\run_nvidia_gpu.bat`（便携版自带参数，input/output/models 都在 `ComfyUI\` 下，无需额外参数）。
+
+需要命令行时：
 
 ```bat
-cd /d D:\Comfy-Desktop\ComfyUI-Installs\ComfyUI
-.venv\Scripts\python.exe -s ComfyUI\main.py ^
-  --enable-assets --enable-agent --enable-manager ^
-  --extra-model-paths-config "%APPDATA%\Comfy Desktop\instance-model-paths\<inst>.yaml" ^
-  --input-directory D:\Comfy-Desktop\ComfyUI-Shared\input ^
-  --output-directory D:\Comfy-Desktop\ComfyUI-Shared\output
+cd /d D:\ComfyUI_windows_portable
+python_embeded\python.exe -s ComfyUI\main.py
 ```
 
-- `<inst>.yaml` 在 `%APPDATA%\Comfy Desktop\instance-model-paths\` 下，文件名带安装 id。
-- 启动到 `/system_stats` 返回 200 约需 20–40s。
-- **不要同时运行 Desktop 与命令行实例**，8188 会冲突。
+- `python_embeded` 是便携 Python，**没有 venv**，ffmpeg 也在它下面。
+- 启动到 `/system_stats` 返回 200 约需 20–40s；默认端口 8188。
+- **不要同时跑 Desktop 版与 portable 版**，8188 会冲突。
 
 ## 环境变量（覆盖默认值，不改代码）
 
 | 变量 | 默认 | 用途 |
 |---|---|---|
 | `COMFY_BASE` | `http://127.0.0.1:8188` | 服务地址（远程需 `--listen`） |
-| `COMFY_INPUT` | `D:/Comfy-Desktop/ComfyUI-Shared/input` | 素材目录 |
-| `COMFY_OUTPUT` | `D:/Comfy-Desktop/ComfyUI-Shared/output` | 产物根目录（图片没有 fullpath 时靠它拼绝对路径） |
-| `COMFY_FFMPEG` | `.venv\…\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe` | 抽帧与元数据读取 |
+| `COMFY_INPUT` | `D:/ComfyUI_windows_portable/ComfyUI/input` | 素材目录 |
+| `COMFY_OUTPUT` | `D:/ComfyUI_windows_portable/ComfyUI/output` | 产物根目录（图片没有 fullpath 时靠它拼绝对路径） |
+| `COMFY_FFMPEG` | `python_embeded\…\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe` | 抽帧与元数据读取 |
 
 ## MOSS 文生图
 

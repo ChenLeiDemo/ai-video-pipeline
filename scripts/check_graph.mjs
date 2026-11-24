@@ -60,7 +60,7 @@ async function main() {
   const imageList = new Set(listFor('LoadImage'));
   for (const [id, n] of Object.entries(g)) {
     if (n.class_type === 'LoadImage' && !imageList.has(n.inputs?.image)) {
-      err(`${id}: input 目录没有 ${n.inputs?.image}（先 POST /upload/image 或复制到 ComfyUI-Shared\\input）`);
+      err(`${id}: input 目录没有 ${n.inputs?.image}（先 POST /upload/image 或复制到 COMFY_INPUT 指向的目录）`);
     }
   }
 

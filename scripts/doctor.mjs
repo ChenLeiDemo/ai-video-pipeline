@@ -9,10 +9,10 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const val = (n, d) => { const i = args.indexOf(n); return i >= 0 && args[i + 1] ? args[i + 1] : d; };
 const BASE = val('--base', process.env.COMFY_BASE || 'http://127.0.0.1:8188').replace(/\/$/, '');
-const INPUT = val('--input', process.env.COMFY_INPUT || 'D:/Comfy-Desktop/ComfyUI-Shared/input');
-const OUTPUT = val('--output', process.env.COMFY_OUTPUT || 'D:/Comfy-Desktop/ComfyUI-Shared/output');
+const INPUT = val('--input', process.env.COMFY_INPUT || 'D:/ComfyUI_windows_portable/ComfyUI/input');
+const OUTPUT = val('--output', process.env.COMFY_OUTPUT || 'D:/ComfyUI_windows_portable/ComfyUI/output');
 const FF = process.env.COMFY_FFMPEG
-  || 'D:/Comfy-Desktop/ComfyUI-Installs/ComfyUI/ComfyUI/.venv/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe';
+  || 'D:/ComfyUI_windows_portable/python_embeded/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe';
 const req = JSON.parse(fs.readFileSync(path.join(HERE, '../reference/requirements.json'), 'utf8'));
 
 const problems = [];

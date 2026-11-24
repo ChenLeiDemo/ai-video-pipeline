@@ -79,9 +79,9 @@ node scripts/batch.mjs plan.json --assets ./assets --prefix EP01
 | 变量 | 默认（作者机器） |
 |---|---|
 | `COMFY_BASE` | `http://127.0.0.1:8188` |
-| `COMFY_INPUT` | `D:/Comfy-Desktop/ComfyUI-Shared/input` |
-| `COMFY_OUTPUT` | `D:/Comfy-Desktop/ComfyUI-Shared/output` |
-| `COMFY_FFMPEG` | `.venv/.../imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe` |
+| `COMFY_INPUT` | `D:/ComfyUI_windows_portable/ComfyUI/input` |
+| `COMFY_OUTPUT` | `D:/ComfyUI_windows_portable/ComfyUI/output` |
+| `COMFY_FFMPEG` | `python_embeded/Lib/site-packages/imageio_ffmpeg/binaries/ffmpeg-win-x86_64-v9.0.2.exe` |
 
 换机器只改这四个变量，不改代码。
 
